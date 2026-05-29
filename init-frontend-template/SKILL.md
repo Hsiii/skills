@@ -1,6 +1,6 @@
 ---
 name: init-frontend-template
-description: Create a new empty GitHub repository from Hsi's Bun/Vite/React frontend-template GitHub template and clone it locally. Use when the user asks Codex to bootstrap, scaffold, seed, or start a new frontend app/repo from the frontend-template project using the normal GitHub template flow, especially phrases like "use my frontend template", "init an empty repo", "create a repo from frontend-template", or "make a new React/Vite/Bun app".
+description: Create a new empty GitHub repository from Hsi's Bun/Vite/React frontend-template GitHub template and clone it locally. Use when the user asks Codex to bootstrap, scaffold, seed, initialize, or start a new frontend app/repo from the frontend-template project using the normal GitHub template flow, including natural-language requests like "init frontend", "initialize a frontend project", "start a new frontend repo", "use my frontend template", "init an empty repo", "create a repo from frontend-template", or "make a new React/Vite/Bun app".
 ---
 
 # Init Frontend Template
