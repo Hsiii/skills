@@ -1,0 +1,3 @@
+display_name: Init Frontend Template
+short_description: Initialize repos from the frontend template.
+default_prompt: Initialize this empty repository from the frontend template.
