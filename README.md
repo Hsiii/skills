@@ -1,7 +1,7 @@
-# Personal Skills
+# Skills
 
-This repository contains Hsi's personal Codex skills.
+My agent skills.
 
 ## Skills
 
-- `init-frontend-template`: Creates a new empty GitHub repository from Hsi's Bun/Vite/React `frontend-template` GitHub template and clones it locally.
+- [`init-frontend-template`](./init-frontend-template): Creates a new empty GitHub repository from [`frontend-template`](https://github.com/Hsiii/frontend-template).
