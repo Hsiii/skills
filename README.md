@@ -10,4 +10,4 @@ Three small Codex skills for GitHub issue-building loops.
 
 ## Why
 
-The orchestrator owns issue queues. The loop skill owns only one two-thread interaction. The PR skill owns maintainer-focused PR output, so internal repos can publish draft PRs while external repos can prepare reviewable drafts safely.
+This makes my issue-to-PR workflow require less human-in-the-loop work.
