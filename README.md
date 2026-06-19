@@ -1,6 +1,6 @@
 # human-out-of-loop
 
-Codex skills for human-out-of-loop GitHub issue-building loops.
+Codex skills to turn issues into reviewed PRs automaticaly.
 
 ## Prerequisite
 
@@ -24,4 +24,4 @@ Pick your own trigger time, trigger interval, and CWD. The CWD should be a folde
 
 ## Why
 
-This makes my issue-to-PR workflow require less human-in-the-loop work.
+So we can go touch some grass.
