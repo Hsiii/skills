@@ -1,4 +1,4 @@
 interface:
   display_name: "Solve Issue Loop"
-  short_description: "Issue fix to draft PR workflow"
+  short_description: "Ready issue loop with review modes"
   default_prompt: "Use $solve-issue-loop to solve issue."

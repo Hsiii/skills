@@ -1,13 +1,19 @@
 ---
 name: pr
-description: "Draft pull requests using the repository's PR template when present, or a concise fallback with Description and optional Comparison. Use when the user says \"pr\", asks to draft or create a PR, or another skill hands off draft PR creation."
+description: "Draft pull request output in internal or external mode: for the user's repos, create real draft GitHub PRs using the repo template and the GitHub Yeet skill; for external repos, write gitignored DRAFT.md and media without opening a PR. Use when the user says \"pr\", asks to draft or create a PR, or another skill hands off PR creation."
 ---
 
 # PR
 
-Create a draft PR. Use the repo's template exactly when present; do not add sections the template does not ask for.
+Auto-determine mode: internal for the user's own repos; external otherwise. Ask only if ownership is ambiguous.
 
-If there is no template, use:
+Use the repo's template exactly when present. Make the title convey importance and what the PR helps maintainers with. Do not add sections the template does not ask for. For user-facing changes, include UI comparison under the most suitable template heading.
+
+Internal: use the GitHub Yeet skill to publish the branch and create a real draft PR.
+
+External: do not open a GitHub PR. Ensure `DRAFT.md`, `REVIEW.md`, and prepared media are gitignored, then write the PR title/body and media references to `DRAFT.md`.
+
+When there is no template, use:
 
 ```markdown
 ## Description
