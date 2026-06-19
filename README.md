@@ -2,6 +2,10 @@
 
 Codex skills for human-out-of-loop GitHub issue-building loops.
 
+## Prerequisite
+
+These skills expect the `ponytail` skill to be installed for implementation and review threads. If you do not have it, install it from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail).
+
 ## Skills
 
 - `solve-issues`: triggered by "solve issues" or "building loops"; fetches open issues labeled `ready`, determines internal/external mode, creates two ponytail threads per issue, and calls `$solve-issue` with a task packet.
