@@ -5,11 +5,11 @@ description: "Draft pull request output in internal or external mode: for the us
 
 # PR
 
-Auto-determine mode: internal for the user's own repos; external otherwise. Ask only if ownership is ambiguous.
+Use the supplied mode. If called directly, auto-determine mode: internal for the user's own repos; external otherwise. Ask only if ownership is ambiguous.
 
 Use the repo's template exactly when present. Make the title convey importance and what the PR helps maintainers with. Do not add sections the template does not ask for. For user-facing changes, include UI comparison under the most suitable template heading.
 
-Internal: use the GitHub Yeet skill to publish the branch and create a real draft PR.
+Internal: use the GitHub Yeet skill for branch publish and real draft PR creation.
 
 External: do not open a GitHub PR. Ensure `DRAFT.md`, `REVIEW.md`, and prepared media are gitignored, then write the PR title/body and media references to `DRAFT.md`.
 

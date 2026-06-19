@@ -1,20 +1,21 @@
 ---
 name: solve-issue-loop
-description: "Run the user's issue-building loops for GitHub issues: auto-determine internal vs external repo mode, process ready issues, implement and verify fixes, use $pr for PR output, and run heartbeat review loops. Use when the user says \"solve issue\", \"building loops\", asks Codex to process ready issues, or wants issue-to-PR automation."
+description: "Run one GitHub issue loop using an explicit issue, mode, implementation ponytail thread, and review ponytail thread. Implement, verify, call $pr, then heartbeat until review passes. Use when $solve-issue hands off a single ready issue or when the user explicitly provides one issue plus the two threads."
 ---
 
 # Solve Issue Loop
 
-Auto-determine mode: internal for the user's own repos; external otherwise. Ask only if ownership is ambiguous.
+Inputs: one issue, mode (`internal` or `external`), implementation thread, review thread.
 
-For each `ready` issue:
+Implementation thread:
 
-1. Spin up a ponytail thread for implementation.
-2. Read the issue, comments, linked PRs, and relevant code.
-3. Implement, verify with repo checks, and capture before/after media for user-facing changes.
-4. Use `$pr` in the matching mode.
-5. Enter heartbeat mode: resolve review comments until review passes, then stop.
+1. Read the issue, comments, linked PRs, and relevant code.
+2. Implement, verify with repo checks, and capture before/after media for user-facing changes.
+3. Use `$pr` with the supplied mode.
+4. Enter heartbeat mode and resolve review comments until review passes.
 
-Internal mode: `$pr` creates a real draft GitHub PR, then a second ponytail thread reviews the PR and comments on it. Stop when that reviewer passes and signal the implementation thread to stop.
+Review thread:
 
-External mode: `$pr` writes gitignored `DRAFT.md` plus prepared media instead of opening a GitHub PR. A second ponytail thread reviews `DRAFT.md` into gitignored `REVIEW.md`. Stop when review passes and signal the implementation thread to stop.
+1. Internal: review the draft GitHub PR and comment on it.
+2. External: review `DRAFT.md` and write gitignored `REVIEW.md`.
+3. When review passes, signal the implementation thread to stop.

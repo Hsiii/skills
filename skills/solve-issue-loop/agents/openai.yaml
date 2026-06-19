@@ -1,4 +1,4 @@
 interface:
   display_name: "Solve Issue Loop"
-  short_description: "Ready issue loop with review modes"
+  short_description: "Single issue two-thread loop"
   default_prompt: "Use $solve-issue-loop to solve issue."
