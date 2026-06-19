@@ -5,11 +5,9 @@ description: "Orchestrate GitHub issue processing for open issues labeled ready:
 
 # Solve Issues
 
-Auto-determine mode once per repo: internal for the user's own repos; external otherwise. Ask only if ownership is ambiguous.
-
 For each open issue labeled `ready`:
 
-1. Fetch one issue with `state:open` and `label:ready`; determine the mode.
+1. Determine mode once per repo: internal for the user's own repos; external otherwise.
 2. Create two ponytail threads: implementation and review.
 3. Call `$solve-issue` with a task packet:
    - repo, issue number, issue URL, mode
@@ -18,6 +16,6 @@ For each open issue labeled `ready`:
    - artifact paths: `DRAFT.md`, `REVIEW.md`, `.codex-pr-media/`
    - review pass marker: `PASS`
    - stop protocol: send the implementation thread a stop message after pass
-4. Move to the next ready issue only after that loop stops.
+4. Continue only after that loop stops.
 
-Do not implement inside this skill; it only schedules isolated per-issue loops.
+Ask only if ownership is ambiguous. Do not implement here; only schedule isolated per-issue loops.

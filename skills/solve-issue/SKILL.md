@@ -5,19 +5,19 @@ description: "Run one GitHub issue loop from an explicit task packet containing 
 
 # Solve Issue
 
-Input: one task packet from `$solve-issues`. Do not fetch queues or infer missing context.
+Input: one task packet from `$solve-issues`. Do not fetch queues or infer context.
 
 Implementation thread:
 
 1. Read the issue, comments, linked PRs, and relevant code.
 2. Implement, verify with repo checks, and capture before/after media for user-facing changes.
 3. Use `$pr` with the supplied mode.
-4. Start the review thread only after `$pr` returns a draft PR URL or writes `DRAFT.md`.
-5. Enter heartbeat mode and resolve review comments until the review thread returns the pass marker.
+4. After `$pr` returns a PR URL or writes `DRAFT.md`, start review.
+5. Heartbeat until the review thread returns the pass marker; resolve comments as they arrive.
 
 Review thread:
 
 1. Internal: review the draft GitHub PR and comment on it.
 2. External: review `DRAFT.md` and write gitignored `REVIEW.md`.
-3. If changes are needed, write actionable comments.
-4. If review passes, write `PASS` in the PR comment or `REVIEW.md`, then send the implementation thread the stop message from the task packet.
+3. Write actionable comments or `PASS`.
+4. On `PASS`, send the implementation thread the stop message from the task packet.

@@ -7,7 +7,7 @@ description: "Draft pull request output in internal or external mode: for the us
 
 Use the supplied mode. If called directly, auto-determine mode: internal for the user's own repos; external otherwise. Ask only if ownership is ambiguous.
 
-Use the repo's template exactly when present. Make the title convey importance and what the PR helps maintainers with. Do not add sections the template does not ask for. For user-facing changes, include UI comparison under the most suitable template heading.
+Use the repo's template exactly when present. Make the title convey importance and maintainer value. Do not add sections the template does not ask for. For user-facing changes, include UI comparison under the most suitable heading.
 
 Internal: use the GitHub Yeet skill for branch publish and real draft PR creation. If media exists, use the logged-in browser to edit the PR body or add a PR comment, paste/upload files from `.codex-pr-media/`, and keep the inserted GitHub media URLs in the PR.
 
