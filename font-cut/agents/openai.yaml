@@ -1,0 +1,4 @@
+interface:
+  display_name: "Font Cut"
+  short_description: "Audit and reduce UI typography variants"
+  default_prompt: "Use $font-cut to inventory typography variants in this interface and propose a safe reduction."
