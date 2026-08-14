@@ -1,0 +1,4 @@
+interface:
+  display_name: "Forward Port"
+  short_description: "Expose a local HTTP port with Cloudflare"
+  default_prompt: "Use $forward-port to expose a local HTTP server through a Cloudflare Quick Tunnel."

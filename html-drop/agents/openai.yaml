@@ -1,0 +1,4 @@
+interface:
+  display_name: "HTML Drop"
+  short_description: "Create polished self-contained HTML artifacts"
+  default_prompt: "Use $html-drop to turn the current deliverable into a readable HTML artifact."
