@@ -27,6 +27,6 @@ Use $font-cut to audit this interface and propose a safe typography reduction.
 `forward-port` exposes an existing local HTTP server through a Cloudflare Quick Tunnel without relying on shell aliases.
 
 ```text
-Forward port 3000 as homepage.
-Stop forwarding homepage.
+Forward port 3000.
+Forward this HTML file as homepage.
 ```

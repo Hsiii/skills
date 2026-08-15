@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 
-import { basename, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 
 const usage = `usage:
-  forward-port [port] [project-name]
-  forward-port --file <html-file> [project-name]`;
+  forward-port [port]
+  forward-port --file <html-file> [preview-name]`;
 
 function fail(message, code = 1) {
   console.error(`forward-port: ${message}`);
@@ -16,6 +16,19 @@ function slugify(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function repositoryName() {
+  const result = Bun.spawnSync(["git", "rev-parse", "--git-common-dir"], {
+    stderr: "ignore",
+  });
+  if (result.exitCode === 0) {
+    const commonDirectory = resolve(result.stdout.toString().trim());
+    if (basename(commonDirectory) === ".git") {
+      return basename(dirname(commonDirectory));
+    }
+  }
+  return basename(process.cwd());
 }
 
 const args = process.argv.slice(2);
@@ -34,13 +47,13 @@ if (args[0] === "--file") {
   projectName = args[2];
   if (!(await Bun.file(filePath).exists())) fail(`missing ${filePath}`);
 } else {
-  if (args.length > 2) fail(usage, 2);
+  if (args.length > 1) fail(usage, 2);
   const portText = args[0] ?? "3000";
   if (!/^\d+$/.test(portText) || Number(portText) < 1 || Number(portText) > 65535) {
     fail(`invalid port '${portText}'`, 2);
   }
   port = Number(portText);
-  projectName = args[1];
+  projectName = repositoryName();
 }
 
 const slug = slugify(projectName ?? basename(process.cwd()));
@@ -67,6 +80,9 @@ if (filePath) {
 
 const origin = `http://localhost:${port}`;
 console.error(`forward-port: forwarding ${origin} as ${slug}`);
+if (!process.env.TRYCF_REGISTER_URL) {
+  console.error("forward-port: no alias registration configured");
+}
 
 const tunnel = Bun.spawn(["cloudflared", "tunnel", "--url", origin], {
   stdin: "inherit",
