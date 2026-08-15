@@ -22,6 +22,14 @@ Use $font-cut to audit this interface and propose a safe typography reduction.
 
 `html-drop` turns a deliverable into a self-contained HTML artifact. Send `html` for a local file, `html+` for a live mobile-friendly preview, or `html-` to close and clean up the preview.
 
+Install `html-drop` and `forward-port` together to enable the complete `html+` and `html-` workflow:
+
+```text
+Install html-drop and forward-port from https://github.com/Hsiii/skills
+```
+
+Each skill also works independently: `html-drop` can create local artifacts, while `forward-port` can expose an existing local server.
+
 ## Forward Port
 
 `forward-port` exposes an existing local HTTP server through a Cloudflare Quick Tunnel without relying on shell aliases.
