@@ -13,6 +13,6 @@ For UI variants, render the actual alternatives together and label them `A`, `B`
 
 - For `html`, write the file and report its absolute path.
 - For `html+`, create the file, then use the forward-port skill to publish it. Report the path and URL.
-- For `html-`, use the forward-port skill to close its preview. Ask which preview only when ambiguous.
+- For `html-`, use the forward-port skill to close its preview, then remove its disposable HTML file. Ask which preview only when ambiguous.
 
-Keep the same file across iterations.
+Keep the same file across live-preview iterations. Remove it after `html-`, another explicit cleanup request, or a confirmed merge of its associated PR.

@@ -8,12 +8,8 @@ description: Manage Cloudflare Quick Tunnels for local HTTP ports. Use when the 
 Run the bundled script:
 
 ```text
-scripts/forward-port publish <html-file> [project-name]
-scripts/forward-port start <port> [project-name]
-scripts/forward-port status [project-name]
-scripts/forward-port stop [project-name]
+scripts/forward-port [port] [project-name]
+scripts/forward-port --file <html-file> [project-name]
 ```
 
-Use `publish` for HTML artifacts; it manages the file, port, preview reuse, and tunnel. Treat the URL as public. Report `artifact_path` and `dev_url` when emitted; otherwise report `quick_url`.
-
-Keep previews running across iterations. Stop one when asked or after its associated PR is confirmed merged. `stop` verifies recorded processes before stopping them and moves managed artifacts into recoverable temporary trash.
+Keep the command running and retain its execution session. Treat the URL as public. Report `dev_url` when emitted; otherwise report `quick_url`. Close the exact session when asked or after its associated PR is confirmed merged.
