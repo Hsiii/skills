@@ -1,17 +1,10 @@
 #!/usr/bin/env bun
 
-import { copyFile, mkdir, readdir, readFile, rename, unlink } from "node:fs/promises";
-import { basename, join, resolve, sep } from "node:path";
+import { basename, resolve } from "node:path";
 
-const uid = process.getuid?.() ?? "unknown";
-const stateRoot = `/tmp/codex-forward-port-${uid}`;
-const artifactRoot = resolve(`/tmp/html-drop-${uid}`);
-const trashRoot = join(stateRoot, "trash");
 const usage = `usage:
-  forward-port publish <html-file> [project-name]
-  forward-port start <port> [project-name]
-  forward-port status [project-name]
-  forward-port stop [project-name]`;
+  forward-port [port] [project-name]
+  forward-port --file <html-file> [project-name]`;
 
 function fail(message, code = 1) {
   console.error(`forward-port: ${message}`);
@@ -25,379 +18,127 @@ function slugify(value) {
     .replace(/^-|-$/g, "");
 }
 
-function statePath(slug) {
-  return join(stateRoot, `${slug}.json`);
+const args = process.argv.slice(2);
+if (args.includes("-h") || args.includes("--help")) {
+  console.log(usage);
+  process.exit(0);
 }
 
-async function readState(slug) {
-  try {
-    return JSON.parse(await readFile(statePath(slug), "utf8"));
-  } catch (error) {
-    if (error.code === "ENOENT") return null;
-    throw error;
-  }
-}
+let filePath;
+let port = 3000;
+let projectName;
 
-async function writeState(state) {
-  await mkdir(stateRoot, { recursive: true });
-  const path = statePath(state.slug);
-  const temporaryPath = `${path}.${process.pid}.tmp`;
-  await Bun.write(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
-  await rename(temporaryPath, path);
-}
-
-function commandForPid(pid) {
-  if (!Number.isInteger(pid) || pid < 1) return "";
-
-  const result = Bun.spawnSync(["ps", "-p", String(pid), "-o", "command="]);
-  if (result.exitCode !== 0) return "";
-  return result.stdout.toString().trim();
-}
-
-function ownsProcess(pid, recordedCommand) {
-  if (!recordedCommand) return false;
-  return commandForPid(pid) === recordedCommand;
-}
-
-function projectSlug(value = basename(process.cwd())) {
-  const slug = slugify(value);
-  if (!slug) fail(`project name '${value}' does not produce a usable slug`, 2);
-  return slug;
-}
-
-async function showState(state) {
-  const active = ownsProcess(state.runnerPid, state.runnerCommand);
-  console.log(`status=${active ? "active" : "stopped"}`);
-  console.log(`project=${state.slug}`);
-  console.log(`port=${state.port}`);
-  if (state.devUrl) console.log(`dev_url=${state.devUrl}`);
-  if (state.quickUrl) console.log(`quick_url=${state.quickUrl}`);
-  if (state.artifactDir) console.log(`artifact_dir=${state.artifactDir}`);
-}
-
-async function statusCommand(args) {
-  if (args.length > 1) fail(usage, 2);
-
-  if (args.length === 1) {
-    const state = await readState(projectSlug(args[0]));
-    if (!state) fail(`no recorded preview for '${args[0]}'`);
-    await showState(state);
-    return;
-  }
-
-  let files;
-  try {
-    files = (await readdir(stateRoot)).filter((file) => file.endsWith(".json")).sort();
-  } catch (error) {
-    if (error.code === "ENOENT") {
-      console.log("status=none");
-      return;
-    }
-    throw error;
-  }
-
-  if (files.length === 0) {
-    console.log("status=none");
-    return;
-  }
-
-  for (const file of files) {
-    await showState(JSON.parse(await readFile(join(stateRoot, file), "utf8")));
-  }
-}
-
-async function waitForExit(pid, recordedCommand) {
-  for (let attempt = 0; attempt < 50; attempt += 1) {
-    if (!ownsProcess(pid, recordedCommand)) return true;
-    await Bun.sleep(50);
-  }
-  return false;
-}
-
-function stopOwnedProcess(pid, recordedCommand) {
-  if (!ownsProcess(pid, recordedCommand)) return false;
-  process.kill(pid, "SIGTERM");
-  return true;
-}
-
-async function trashArtifact(directory) {
-  if (!directory) return null;
-
-  const artifactDirectory = resolve(directory);
-  if (artifactDirectory === artifactRoot || !artifactDirectory.startsWith(`${artifactRoot}${sep}`)) {
-    fail(`refusing to remove unowned artifact directory '${artifactDirectory}'`);
-  }
-
-  await mkdir(trashRoot, { recursive: true });
-  const destination = join(trashRoot, `${Date.now()}-${basename(artifactDirectory)}`);
-
-  try {
-    await rename(artifactDirectory, destination);
-    return destination;
-  } catch (error) {
-    if (error.code === "ENOENT") return null;
-    throw error;
-  }
-}
-
-async function stopCommand(args) {
-  if (args.length > 1) fail(usage, 2);
-
-  const slug = projectSlug(args[0]);
-  const state = await readState(slug);
-  if (!state) fail(`no recorded preview for '${slug}'`);
-
-  if (stopOwnedProcess(state.runnerPid, state.runnerCommand)) {
-    await waitForExit(state.runnerPid, state.runnerCommand);
-  }
-
-  if (stopOwnedProcess(state.tunnelPid, state.tunnelCommand)) {
-    await waitForExit(state.tunnelPid, state.tunnelCommand);
-  }
-
-  if (ownsProcess(state.runnerPid, state.runnerCommand) || ownsProcess(state.tunnelPid, state.tunnelCommand)) {
-    fail(`recorded processes for '${slug}' did not stop`);
-  }
-
-  const trashed = await trashArtifact(state.artifactDir);
-  await unlink(statePath(slug));
-  console.log(`stopped=${slug}`);
-  if (trashed) console.log(`artifact_trashed=${trashed}`);
-}
-
-function parseStartArgs(args) {
-  if (args.length === 0) fail(usage, 2);
-
-  const portText = args.shift();
-  const port = Number(portText);
-  if (!/^\d+$/.test(portText) || port < 1 || port > 65535) {
+if (args[0] === "--file") {
+  if (args.length < 2 || args.length > 3) fail(usage, 2);
+  filePath = resolve(args[1]);
+  projectName = args[2];
+  if (!(await Bun.file(filePath).exists())) fail(`missing ${filePath}`);
+} else {
+  if (args.length > 2) fail(usage, 2);
+  const portText = args[0] ?? "3000";
+  if (!/^\d+$/.test(portText) || Number(portText) < 1 || Number(portText) > 65535) {
     fail(`invalid port '${portText}'`, 2);
   }
-
-  if (args.length > 1) fail(usage, 2);
-  return { port, slug: projectSlug(args[0]) };
+  port = Number(portText);
+  projectName = args[1];
 }
 
-async function runPreview({ port, slug, directory }) {
-  const previous = await readState(slug);
-  if (previous) {
-    fail(`preview '${slug}' is already recorded; run 'forward-port status ${slug}' or 'forward-port stop ${slug}'`);
-  }
+const slug = slugify(projectName ?? basename(process.cwd()));
+if (!slug) fail(`project name '${projectName}' does not produce a usable slug`, 2);
+if (!Bun.which("cloudflared")) fail("cloudflared is not installed", 127);
 
-  if (!Bun.which("cloudflared")) fail("cloudflared is not installed", 127);
-
-  let activePort = port;
-  let artifactDirectory;
-  let server;
-
-  if (directory) {
-    artifactDirectory = resolve(directory);
-    if (artifactDirectory === artifactRoot || !artifactDirectory.startsWith(`${artifactRoot}${sep}`)) {
-      fail(`HTML Drop directories must be inside ${artifactRoot}`);
-    }
-
-    const indexPath = join(artifactDirectory, "index.html");
-    if (!(await Bun.file(indexPath).exists())) fail(`missing ${indexPath}`);
-
-    try {
-      server = Bun.serve({
-        hostname: "127.0.0.1",
-        port: activePort,
-        fetch(request) {
-          const pathname = new URL(request.url).pathname;
-          if (pathname !== "/" && pathname !== "/index.html") {
-            return new Response("Not found", { status: 404 });
-          }
-          return new Response(Bun.file(indexPath));
-        },
+let server;
+if (filePath) {
+  server = Bun.serve({
+    hostname: "localhost",
+    port: 0,
+    fetch(request) {
+      const pathname = new URL(request.url).pathname;
+      if (pathname !== "/" && pathname !== "/index.html") {
+        return new Response("Not found", { status: 404 });
+      }
+      return new Response(Bun.file(filePath), {
+        headers: { "content-type": "text/html; charset=utf-8" },
       });
-      activePort = server.port;
-    } catch (error) {
-      fail(`could not serve HTML artifact: ${error.message}`);
-    }
-  }
-
-  const origin = `http://127.0.0.1:${activePort}`;
-  if (!directory) {
-    try {
-      await fetch(origin, { signal: AbortSignal.timeout(3000) });
-    } catch {
-      fail(`origin is not responding at ${origin}`);
-    }
-  }
-
-  console.error(`forward-port: forwarding ${origin} as ${slug}`);
-
-  const tunnel = Bun.spawn(["cloudflared", "tunnel", "--url", origin], {
-    stdin: "inherit",
-    stdout: "pipe",
-    stderr: "pipe",
+    },
   });
+  port = server.port;
+}
 
-  const state = {
-    version: 1,
-    slug,
-    port: activePort,
-    origin,
-    artifactDir: artifactDirectory,
-    runnerPid: process.pid,
-    runnerCommand: commandForPid(process.pid),
-    tunnelPid: tunnel.pid,
-    tunnelCommand: commandForPid(tunnel.pid),
-    startedAt: new Date().toISOString(),
-  };
+const origin = `http://localhost:${port}`;
+console.error(`forward-port: forwarding ${origin} as ${slug}`);
+
+const tunnel = Bun.spawn(["cloudflared", "tunnel", "--url", origin], {
+  stdin: "inherit",
+  stdout: "pipe",
+  stderr: "pipe",
+});
+
+function stop(signal) {
+  server?.stop(true);
+  tunnel.kill(signal);
+}
+
+process.once("SIGINT", () => stop(2));
+process.once("SIGTERM", () => stop(15));
+process.once("SIGHUP", () => stop(1));
+
+let announced = false;
+async function handleLine(line) {
+  if (!line) return;
+  console.error(line);
+  if (announced) return;
+
+  const match = line.match(/https:\/\/[A-Za-z0-9-]+\.trycloudflare\.com/);
+  if (!match) return;
+
+  announced = true;
+  const quickUrl = match[0];
+  console.log(`quick_url=${quickUrl}`);
+
+  const registerUrl = process.env.TRYCF_REGISTER_URL;
+  if (!registerUrl) return;
+
+  const devBase = (process.env.TRYCF_DEV_BASE ?? "https://dev.hsichen.dev").replace(/\/+$/, "");
+  const headers = { "content-type": "application/json" };
+  const token = process.env.TRYCF_REGISTER_TOKEN;
+  if (token) headers.authorization = `Bearer ${token}`;
 
   try {
-    await writeState(state);
+    const response = await fetch(registerUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ project: slug, target: quickUrl, origin }),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    console.log(`dev_url=${devBase}/${slug}`);
   } catch (error) {
-    server?.stop(true);
-    tunnel.kill(15);
-    fail(`could not record preview state: ${error.message}`);
+    console.error(`forward-port: stable alias registration failed: ${error.message}`);
   }
+}
 
-  let stopping = false;
-  const stop = (signal) => {
-    if (stopping) return;
-    stopping = true;
-    server?.stop(true);
-    tunnel.kill(signal);
-  };
+async function relay(stream) {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
 
-  process.once("SIGINT", () => stop(2));
-  process.once("SIGTERM", () => stop(15));
-  process.once("SIGHUP", () => stop(1));
-
-  let announced = false;
-
-  async function announce(line) {
-    if (announced) return;
-
-    const match = line.match(/https:\/\/[A-Za-z0-9-]+\.trycloudflare\.com/);
-    if (!match) return;
-
-    announced = true;
-    state.quickUrl = match[0];
-    await writeState(state);
-    console.log(`quick_url=${state.quickUrl}`);
-
-    const registerUrl = process.env.TRYCF_REGISTER_URL;
-    if (!registerUrl) return;
-
-    const devBase = (process.env.TRYCF_DEV_BASE ?? "https://dev.hsichen.dev").replace(/\/+$/, "");
-    const headers = { "content-type": "application/json" };
-    const token = process.env.TRYCF_REGISTER_TOKEN;
-    if (token) headers.authorization = `Bearer ${token}`;
-
-    try {
-      const response = await fetch(registerUrl, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ project: slug, target: state.quickUrl, origin }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      state.devUrl = `${devBase}/${slug}`;
-      await writeState(state);
-      console.log(`dev_url=${state.devUrl}`);
-    } catch (error) {
-      console.error(`forward-port: stable alias registration failed: ${error.message}`);
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value, { stream: !done });
+    const lines = buffer.split(/\r?\n/);
+    buffer = done ? "" : lines.pop();
+    for (const line of lines) await handleLine(line);
+    if (done) {
+      await handleLine(buffer);
+      return;
     }
   }
-
-  async function relay(stream) {
-    const reader = stream.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      buffer += decoder.decode(value, { stream: !done });
-      const lines = buffer.split(/\r?\n/);
-      buffer = done ? "" : lines.pop();
-
-      for (const line of lines) {
-        if (!line) continue;
-        console.error(line);
-        await announce(line);
-      }
-
-      if (done) {
-        if (buffer) {
-          console.error(buffer);
-          await announce(buffer);
-        }
-        return;
-      }
-    }
-  }
-
-  const [exitCode] = await Promise.all([
-    tunnel.exited,
-    relay(tunnel.stdout),
-    relay(tunnel.stderr),
-  ]);
-
-  server?.stop(true);
-  if (!announced && !stopping) {
-    try {
-      await unlink(statePath(slug));
-    } catch (error) {
-      if (error.code !== "ENOENT") {
-        console.error(`forward-port: could not clear failed startup state: ${error.message}`);
-      }
-    }
-
-    if (exitCode === 0) fail("tunnel exited before emitting a URL");
-  }
-  process.exit(exitCode);
 }
 
-async function startCommand(args) {
-  const { port, slug } = parseStartArgs([...args]);
-  await runPreview({ port, slug });
-}
-
-async function publishCommand(args) {
-  if (args.length < 1 || args.length > 2) fail(usage, 2);
-
-  const sourcePath = resolve(args[0]);
-  if (!(await Bun.file(sourcePath).exists())) fail(`missing ${sourcePath}`);
-
-  const slug = projectSlug(args[1]);
-  const previous = await readState(slug);
-  if (previous && ownsProcess(previous.runnerPid, previous.runnerCommand)) {
-    if (!previous.artifactDir) fail(`'${slug}' already forwards an existing server`);
-
-    const artifactPath = join(previous.artifactDir, "index.html");
-    if (sourcePath !== artifactPath) await copyFile(sourcePath, artifactPath);
-    console.log(`artifact_path=${artifactPath}`);
-    if (previous.devUrl) console.log(`dev_url=${previous.devUrl}`);
-    else if (previous.quickUrl) console.log(`quick_url=${previous.quickUrl}`);
-    return;
-  }
-
-  if (previous) await unlink(statePath(slug));
-
-  const artifactDirectory = join(artifactRoot, slug);
-  const artifactPath = join(artifactDirectory, "index.html");
-  await mkdir(artifactDirectory, { recursive: true });
-  if (sourcePath !== artifactPath) await copyFile(sourcePath, artifactPath);
-  console.log(`artifact_path=${artifactPath}`);
-  await runPreview({ port: 0, slug, directory: artifactDirectory });
-}
-
-const [command, ...args] = process.argv.slice(2);
-
-if (!command || command === "-h" || command === "--help") {
-  console.log(usage);
-} else if (command === "publish") {
-  await publishCommand(args);
-} else if (command === "start") {
-  await startCommand(args);
-} else if (command === "status") {
-  await statusCommand(args);
-} else if (command === "stop") {
-  await stopCommand(args);
-} else {
-  fail(usage, 2);
-}
+const [exitCode] = await Promise.all([
+  tunnel.exited,
+  relay(tunnel.stdout),
+  relay(tunnel.stderr),
+]);
+server?.stop(true);
+process.exit(exitCode);
