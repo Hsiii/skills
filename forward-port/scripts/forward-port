@@ -80,9 +80,6 @@ if (filePath) {
 
 const origin = `http://localhost:${port}`;
 console.error(`forward-port: forwarding ${origin} as ${slug}`);
-if (!process.env.TRYCF_REGISTER_URL) {
-  console.error("forward-port: no alias registration configured");
-}
 
 const tunnel = Bun.spawn(["cloudflared", "tunnel", "--url", origin], {
   stdin: "inherit",
@@ -100,7 +97,7 @@ process.once("SIGTERM", () => stop(15));
 process.once("SIGHUP", () => stop(1));
 
 let announced = false;
-async function handleLine(line) {
+function handleLine(line) {
   if (!line) return;
   console.error(line);
   if (announced) return;
@@ -111,26 +108,6 @@ async function handleLine(line) {
   announced = true;
   const quickUrl = match[0];
   console.log(`quick_url=${quickUrl}`);
-
-  const registerUrl = process.env.TRYCF_REGISTER_URL;
-  if (!registerUrl) return;
-
-  const devBase = (process.env.TRYCF_DEV_BASE ?? "https://dev.hsichen.dev").replace(/\/+$/, "");
-  const headers = { "content-type": "application/json" };
-  const token = process.env.TRYCF_REGISTER_TOKEN;
-  if (token) headers.authorization = `Bearer ${token}`;
-
-  try {
-    const response = await fetch(registerUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ project: slug, target: quickUrl, origin }),
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    console.log(`dev_url=${devBase}/${slug}`);
-  } catch (error) {
-    console.error(`forward-port: stable alias registration failed: ${error.message}`);
-  }
 }
 
 async function relay(stream) {
@@ -143,9 +120,9 @@ async function relay(stream) {
     buffer += decoder.decode(value, { stream: !done });
     const lines = buffer.split(/\r?\n/);
     buffer = done ? "" : lines.pop();
-    for (const line of lines) await handleLine(line);
+    for (const line of lines) handleLine(line);
     if (done) {
-      await handleLine(buffer);
+      handleLine(buffer);
       return;
     }
   }
