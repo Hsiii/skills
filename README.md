@@ -9,7 +9,7 @@ Small, focused skills for Codex.
 Ask Codex to install it:
 
 ```text
-Install font-cut from https://github.com/orangesago/skills/tree/main/font-cut
+Install font-cut from https://github.com/sago-cream/skills/tree/main/font-cut
 ```
 
 Then use it in a project:
@@ -25,7 +25,7 @@ Use $font-cut to audit this interface and propose a safe typography reduction.
 Install `html-drop` and `forward-port` together to enable the complete `html+` and `html-` workflow:
 
 ```text
-Install html-drop and forward-port from https://github.com/orangesago/skills
+Install html-drop and forward-port from https://github.com/sago-cream/skills
 ```
 
 Each skill also works independently: `html-drop` can create local artifacts, while `forward-port` can expose an existing local server.
