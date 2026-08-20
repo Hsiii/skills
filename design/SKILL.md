@@ -31,7 +31,7 @@ Treat a selected route as an instruction to load and follow that installed skill
 
 ## Optional dependencies
 
-- [`product-design:index`](https://github.com/openai/openai/tree/master/chatgpt/oai-maintained-plugins/plugins/product-design)
+- [`product-design:index`](https://learn.chatgpt.com/docs/plugins)
 - [`animation-vocabulary`](https://github.com/emilkowalski/skills/tree/main/skills/animation-vocabulary)
 - [`font-cut`](https://github.com/sago-cream/skills/tree/main/font-cut)
 - [`review-animations`](https://github.com/emilkowalski/skills/tree/main/skills/review-animations)

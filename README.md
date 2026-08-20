@@ -12,7 +12,7 @@ Install it with its companion CSS skill:
 Install design and unslop-css from https://github.com/sago-cream/skills
 ```
 
-Its optional capabilities come from [Product Design](https://github.com/openai/openai/tree/master/chatgpt/oai-maintained-plugins/plugins/product-design), [animation-vocabulary](https://github.com/emilkowalski/skills/tree/main/skills/animation-vocabulary), [font-cut](https://github.com/sago-cream/skills/tree/main/font-cut), [review-animations](https://github.com/emilkowalski/skills/tree/main/skills/review-animations), [emil-design-eng](https://github.com/emilkowalski/skills/tree/main/skills/emil-design-eng), and [make-interfaces-feel-better](https://github.com/jakubkrehel/make-interfaces-feel-better/tree/main/skills/make-interfaces-feel-better). Missing capabilities are skipped rather than installed automatically.
+Its optional capabilities come from [Product Design](https://learn.chatgpt.com/docs/plugins), [animation-vocabulary](https://github.com/emilkowalski/skills/tree/main/skills/animation-vocabulary), [font-cut](https://github.com/sago-cream/skills/tree/main/font-cut), [review-animations](https://github.com/emilkowalski/skills/tree/main/skills/review-animations), [emil-design-eng](https://github.com/emilkowalski/skills/tree/main/skills/emil-design-eng), and [make-interfaces-feel-better](https://github.com/jakubkrehel/make-interfaces-feel-better/tree/main/skills/make-interfaces-feel-better). Missing capabilities are skipped rather than installed automatically.
 
 ## Unslop CSS
 
