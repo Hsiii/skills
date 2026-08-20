@@ -1,0 +1,7 @@
+interface:
+  display_name: "Unslop CSS"
+  short_description: "Keep CSS tokens, spacing, and cascade clean"
+  default_prompt: "Use $unslop-css to keep this styling change within the project CSS rules."
+
+policy:
+  allow_implicit_invocation: false
