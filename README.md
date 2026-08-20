@@ -2,6 +2,22 @@
 
 Small, focused skills for Codex.
 
+## Design
+
+`design` routes interface and product design work to the smallest useful set of installed design skills. It can combine specialists for typography, animation, CSS discipline, interface polish, and Product Design workflows without loading the whole group.
+
+Install it with its companion CSS skill:
+
+```text
+Install design and unslop-css from https://github.com/sago-cream/skills
+```
+
+Its optional capabilities come from [Product Design](https://github.com/openai/openai/tree/master/chatgpt/oai-maintained-plugins/plugins/product-design), [animation-vocabulary](https://github.com/emilkowalski/skills/tree/main/skills/animation-vocabulary), [font-cut](https://github.com/sago-cream/skills/tree/main/font-cut), [review-animations](https://github.com/emilkowalski/skills/tree/main/skills/review-animations), [emil-design-eng](https://github.com/emilkowalski/skills/tree/main/skills/emil-design-eng), and [make-interfaces-feel-better](https://github.com/jakubkrehel/make-interfaces-feel-better/tree/main/skills/make-interfaces-feel-better). Missing capabilities are skipped rather than installed automatically.
+
+## Unslop CSS
+
+`unslop-css` keeps styling changes on the project's design tokens and 4px grid, then checks the cascade for unintended overrides. It is explicit-only on its own and is selected automatically when `design` routes work that changes styling code.
+
 ## Font Cut
 
 `font-cut` audits UI typography and proposes a smaller, more consistent set of text styles without flattening meaningful hierarchy or state.
